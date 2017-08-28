@@ -1,6 +1,4 @@
-=============================================================
-`pytest_generate_tests` conflicts with `conftest.py` fixtures
-=============================================================
+# `pytest_generate_tests` conflicts with `conftest.py` fixtures
 
 This repository provides examples of how pytest allows parametrization of tests via
 `pytest_generate_tests` and shall illustrate two issues:
@@ -13,8 +11,7 @@ The repository also shows workarounds using dumb fixture hiding the one from `co
 - preventing `duplicate values` error
 - preventing too many collected tests
 
-Concepts
-========
+## Concepts
 
 Motivation is to run a test case, which has two parameters:
 
@@ -82,8 +79,7 @@ The only way to run the tests is to collect from one directory only:
 
     =========================== 4 passed in 0.01 seconds ===========================
 ```
-Installation and execution
-==========================
+## Installation and execution
 
 One can run all the tests using `tox`.
 
@@ -98,8 +94,9 @@ To run specific tests manually:
 - run the test by ```$ py.test -sv tests/{test_directory}```
 
 
-000_testparams: single test file with parametrized test case
-------------------------------------------------------------
+## Test suites
+
+### 000_testparams: single test file with parametrized test case
 
 Following `tests/000_testparams/test_it.py` illustrates the test case:
 
@@ -151,8 +148,7 @@ Running the test we see all runs well:
 Note the "test id" shown in square brackets (e.g. `[SET_01-loc_a]`). The text inside shows what
 fixture instances are participating in given test run.
 
-001_onefile_fix: single file using one fixture
-----------------------------------------------
+### 001_onefile_fix: single file using one fixture
 
 This case acomplish the parametrization by means of fixtures:
 
@@ -204,8 +200,8 @@ Running the tests we see, all runs well:
     =========================== 4 passed in 0.01 seconds ===========================
 ```
 
-002_onefile_gen: single file using `pytest_generate_tests`
-----------------------------------------------------------
+### 002_onefile_gen: single file using `pytest_generate_tests`
+
 This time we parametrize by means of `pytest_generate_tests` function, which builds up
 arguments to pass into test. It seems complicated, but it is actually the only method to resolve
 more complex scenarios (e.g. multiple data sets, each having different loc_id values).
@@ -252,8 +248,7 @@ Running the test we see all runs well:
     =========================== 4 passed in 0.01 seconds ===========================
 ```
 
-003_conftest_fixt1: test file + `conftest.py` with one fixture (duplicate values)
----------------------------------------------------------------------------------
+### 003_conftest_fixt1: test file + `conftest.py` with one fixture (duplicate values)
 
 This time we introduce `conftest.py` and define here a fixture `dataset`. Important things are:
 
@@ -308,8 +303,8 @@ It seems as the pytest collector is confused and did not recognize, that the tes
 the parameter from `pytest_generate_tests` which shall override any value provided by other
 fixtures. Currently I consider this a bug in `pytest`.
 
-004_conftest_fixt1_fix: test file + `conftest.py` with one fixture (fixed)
---------------------------------------------------------------------------
+### 004_conftest_fixt1_fix: test file + `conftest.py` with one fixture (fixed)
+
 This test case is fixing the conflict `ValueError: duplicate 'dataset'` by adding dummy fixture
 into test file.
 ```python
@@ -360,8 +355,8 @@ $ py.test -sv tests/004_conftest_fixt1_fix
     =========================== 4 passed in 0.01 seconds ===========================
 ```
 
-005_conftest_fixt2: test file + `conftest.py` with dependent fixtures (duplicate tests)
----------------------------------------------------------------------------------------
+### 005_conftest_fixt2: test file + `conftest.py` with dependent fixtures (duplicate tests)
+
 This illustrattes another issue: collecting more test cases, than is really expected.
 
 The `test_it.py` is as in `003_conftest_fixt1` (thus no dummy fixture present).
@@ -428,8 +423,8 @@ happen. In fact, the id `[SET_01-loc_a-alfa]` shows name of fixture `dataset` tw
 `SET_01` from our `test_it.py` what is fine, and then `alfa` from `conftest.py, what shall not
 happen.
 
-006_conftest_fixt2_fix: test file + `conftest.py` with dependent fixtures (fixed)
----------------------------------------------------------------------------------
+### 006_conftest_fixt2_fix: test file + `conftest.py` with dependent fixtures (fixed)
+
 The last case is fixing the issue of duplicated tests again by using dummy fixture in our
 `test_it.py` file:
 ```python
@@ -478,8 +473,7 @@ Running the test suite we see all is fine:
     =========================== 4 passed in 0.01 seconds ===========================
 ```
 
-Summary
-=======
+## Summary
 
 `pytest` excels in how one can author test cases with needed parameters and how these parameters can
 be managed later on from multiple places:
@@ -495,8 +489,7 @@ Provided examples exhibit two problems related to discovery of test cases, when
 - "duplicate values" for value of a parameter, already provided by `pytest_generate_tests`
 - collection of test cases collects more tests then needed using already used fixture for 2nd time.
 
-Duplicate values
-----------------
+### Duplicate values
 
 As shown in `003_conftest_fixt1`, when `pytest_generate_tests` provided a value for test case
 parameter and at the same time `conftest.py` provides a fixture with the same name, it wrongly
@@ -507,8 +500,8 @@ Expected behaviour is, that once a test function gets value for a parameter from
 Alternatively it shall resolve the duplication by giving the `pytest_generate_tests` parameter value
 preference.
 
-Collection collects tests multiple times
-----------------------------------------
+### Collection collects tests multiple times
+
 As shown in `005_conftest_fixt2`, when `pytest_generate_tests` provides a value for a test case
 parameter and at the same time in `conftest.py` there exist a fixture, which is dependent on another
 one, it results in collecting the same test call (having the same combination of parameter values)
